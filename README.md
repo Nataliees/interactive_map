@@ -20,3 +20,9 @@ npm run dev -- --port 5173
 ## Внешние ресурсы
 
 Изображения загружаются с `images.unsplash.com`, шрифты — с `fonts.googleapis.com` и `fonts.gstatic.com`. При ограниченной сети разрешите эти домены. Фотографии демонстрационные; перед публикацией требуется редакционная проверка соответствия каждому конкретному блюду и замена на собственные фотографии ресторана. Контакты намеренно не выдуманы: в разделе указано обращение к администратору. Вложенные референсы не были доступны в сессии; оформление выполнено по текстовому заданию.
+
+## Публикация на GitHub Pages
+
+В Settings → Pages → Build and deployment выберите Source: **GitHub Actions**.
+Workflow `.github/workflows/deploy.yml` собирает приложение и публикует содержимое `dist` при push в `main`. При первом включении запустите workflow вручную из Actions → Deploy restaurant menu to GitHub Pages → Run workflow.
+Адрес: https://nataliees.github.io/interactive_map/ . Исходный `index.html` нельзя публиковать без сборки: браузер не исполняет TypeScript/TSX.
