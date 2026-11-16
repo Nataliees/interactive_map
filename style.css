@@ -186,3 +186,167 @@ body.screen-app {
 @media (prefers-reduced-motion: reduce) {
   .screen-app *, .screen-app *::before, .screen-app *::after { scroll-behavior: auto !important; }
 }
+
+/* Soft controls and a botanical seal for the passage to the menu. */
+.primary, .screen-switch, .booking-card button, .dialog-actions button,
+.list-button, .dish-choice, .dish-add, .all-menu, .quantity,
+.quantity button, .feature-close, .dish-more, .text-button {
+  border-radius: 999px;
+}
+.booking-card button { padding: 12px 20px; }
+.list-button { padding: 14px 20px; }
+.dish-choice { border-radius: 25px; padding: 13px 18px; }
+.feature-close { background: #f4eee4cc; }
+.feature-actions .dish-more, #dish-close, #reset {
+  border: 1px solid #b7bea5;
+  background: #fffaf278;
+  padding: 9px 16px;
+  text-decoration: none;
+}
+.feature-actions .dish-more:hover, #reset:hover, #dish-close:hover { background: #e8ecdb; }
+.dialog-actions button, #confirm, #place-order { border-radius: 999px; }
+.menu-categories button.route-stop { border-radius: 999px; }
+.menu-categories button.route-stop:hover .route-icon { box-shadow: 0 0 0 5px #a8b58b24; }
+.screen-switch.menu-orbit {
+  width: 94px;
+  height: 94px;
+  min-width: 94px;
+  min-height: 94px;
+  flex: 0 0 94px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid #8e9a77;
+  background: #f9f4e9;
+  color: var(--olive);
+  box-shadow: 0 4px 16px #4f5b3210;
+  transition: background .3s, box-shadow .3s;
+}
+.menu-orbit .orbit-caption {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  font: 7.6px Arial, sans-serif;
+  animation: menu-orbit-turn 28s linear infinite;
+}
+.orbit-core {
+  width: 53px;
+  height: 53px;
+  border: 1px solid #b9c1a5;
+  border-radius: 50%;
+  background: #eef0e2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  transition: background .3s, color .3s;
+}
+.orbit-core svg { fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+.orbit-leaf { transform-origin: 50% 80%; transition: transform .4s; }
+.orbit-arrow { transition: transform .4s; }
+.screen-switch.menu-orbit:hover, .screen-switch.menu-orbit:focus-visible { background: #e7ebd9; box-shadow: 0 0 0 6px #a8b58b24; }
+.menu-orbit:hover .orbit-core, .menu-orbit:focus-visible .orbit-core { background: var(--olive); color: #fffaf0; }
+.menu-orbit:hover .orbit-leaf, .menu-orbit:focus-visible .orbit-leaf { transform: rotate(-12deg); }
+.menu-orbit:hover .orbit-arrow, .menu-orbit:focus-visible .orbit-arrow { transform: translateX(3px); }
+@keyframes menu-orbit-turn { to { transform: rotate(360deg); } }
+
+/* The editorial title and category route follow the supplied reference. */
+#menu .menu-canvas { grid-template-columns: 185px 220px minmax(0, 1fr); gap: 24px; min-height: 580px; padding-top: 20px; }
+#menu .menu-editorial { grid-column: auto; display: block; padding-top: 105px; position: relative; }
+#menu .menu-editorial h2 { font-size: 48px; margin: 12px 0 18px; letter-spacing: -1.6px; }
+#menu .menu-motto { font-size: 22px; line-height: 1.3; }
+#menu .menu-motto br { display: block; }
+#menu .menu-botanical { display: block; width: 180px; height: 220px; left: -50px; bottom: 0; }
+#menu .menu-categories { position: relative; display: block; width: 220px; height: 575px; padding: 0; overflow: visible; }
+#menu .menu-categories::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 220px;
+  height: 575px;
+  border: 0;
+  border-radius: 0;
+  transform: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 575'%3E%3Cpath d='M18 -40 C0 0 22 9 30 32 S65 80 53 120 S100 165 87 208 S60 250 67 296 S35 340 47 384 S80 440 79 472 S95 535 142 575' fill='none' stroke='%2399a481' stroke-width='1.1'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+}
+#menu .menu-categories button.route-stop {
+  position: absolute;
+  top: calc(var(--route-index) * 88px);
+  left: var(--route-offset);
+  min-height: 64px;
+  display: flex;
+  flex-direction: row;
+  text-align: left;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+#menu .menu-categories .route-stop:nth-child(1) { --route-index: 0; --route-offset: 8px; }
+#menu .menu-categories .route-stop:nth-child(2) { --route-index: 1; --route-offset: 31px; }
+#menu .menu-categories .route-stop:nth-child(3) { --route-index: 2; --route-offset: 65px; }
+#menu .menu-categories .route-stop:nth-child(4) { --route-index: 3; --route-offset: 45px; }
+#menu .menu-categories .route-stop:nth-child(5) { --route-index: 4; --route-offset: 25px; }
+#menu .menu-categories .route-stop:nth-child(6) { --route-index: 5; --route-offset: 57px; }
+#menu .route-name { width: 90px; max-width: 90px; }
+#menu .menu-categories .all-menu { position: absolute; top: 528px; left: 70px; margin: 0; }
+#menu .menu-experience { padding-top: 30px; }
+#menu .dish-feature, #menu .feature-photo { min-height: 430px; }
+#menu .feature-copy h3 { font-size: 30px; }
+@media (max-width: 1250px) and (min-width: 1051px) {
+  #menu .menu-canvas { grid-template-columns: 145px 205px minmax(0, 1fr); gap: 18px; }
+  #menu .menu-editorial h2 { font-size: 40px; }
+  #menu .menu-motto { font-size: 19px; }
+  #menu .menu-categories { width: 205px; }
+  #menu .route-name { width: 75px; max-width: 75px; }
+  #menu .menu-categories button.route-stop { font-size: 12px; gap: 9px; }
+  #menu .feature-copy { padding: 30px 20px; }
+  #menu .feature-copy h3 { font-size: 26px; }
+}
+@media (max-width: 1050px) and (min-width: 701px) {
+  #menu .menu-canvas { grid-template-columns: 220px minmax(0, 1fr); gap: 20px; }
+  #menu .menu-editorial { grid-column: 1 / -1; display: flex; align-items: center; gap: 22px; padding: 0; }
+  #menu .menu-editorial h2 { font-size: 38px; margin: 5px 0; }
+  #menu .menu-motto { font-size: 17px; }
+  #menu .menu-motto br { display: none; }
+  #menu .menu-botanical { display: none; }
+  #menu .menu-experience { padding-top: 0; }
+  #menu .feature-copy h3 { font-size: 26px; }
+}
+@media (max-width: 700px) {
+  .screen-switch.menu-orbit { width: 76px; height: 76px; min-width: 76px; min-height: 76px; flex-basis: 76px; }
+  .orbit-core { width: 43px; height: 43px; }
+  .orbit-leaf { width: 23px; height: 23px; }
+  .orbit-arrow { width: 18px; height: 10px; }
+  #menu .menu-canvas { display: flex; flex-direction: column; gap: 16px; min-height: 0; padding-top: 12px; }
+  #menu .menu-editorial { display: flex; align-items: center; gap: 20px; padding: 0; }
+  #menu .menu-editorial h2 { font-size: 36px; margin: 5px 0; }
+  #menu .menu-motto { font-size: 16px; }
+  #menu .menu-botanical { display: none; }
+  #menu .menu-categories { display: flex; flex-direction: row; width: auto; height: auto; gap: 18px; padding: 8px 5px 14px; overflow-x: auto; overflow-y: hidden; }
+  #menu .menu-categories::before { top: 30px; bottom: auto; left: 0; right: 0; width: auto; height: 1px; border: 0; border-top: 1px solid #a2aa89; background: none; }
+  #menu .menu-categories button.route-stop { position: relative; inset: auto; min-width: 76px; min-height: 80px; flex-direction: column; text-align: center; gap: 10px; font-size: 10px; }
+  #menu .route-name { width: 80px; max-width: 80px; }
+  #menu .menu-categories .all-menu { position: static; align-self: flex-start; white-space: nowrap; margin-top: 10px; }
+  #menu .menu-experience { padding-top: 0; }
+  #menu .dish-feature { min-height: 340px; }
+  #menu .feature-photo { min-height: 330px; }
+  #menu .feature-copy h3 { font-size: 26px; }
+}
+@media (max-width: 440px) {
+  #menu .feature-photo { min-height: 0; height: 235px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-orbit .orbit-caption { animation: none; }
+  .menu-orbit, .menu-orbit * { transition: none !important; }
+}
+/* Keep the status and capacity inside each table, including compact rooms. */
+.table-button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 46px; padding: 2px 0; }
+.table-button strong { font-size: 18px; line-height: 20px; }
+.table-button small { font-size: 8px; line-height: 10px; }
+.table-button .map-status { font-size: 7px; line-height: 8px; }

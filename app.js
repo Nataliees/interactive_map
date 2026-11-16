@@ -13,6 +13,8 @@
   let orderTable=null, category=2, activeDish=10;
   const categories=['Закуски','Первые блюда','Вторые блюда','Напитки б/а','Десерты','Алкоголь'];
   const $ = id => document.getElementById(id);
+  const numberForms = new Intl.PluralRules('ru-RU');
+  const counted = (value, forms) => `${value} ${forms[{one:0,few:1,many:2,other:2}[numberForms.select(value)]]}`;
   const money = value => new Intl.NumberFormat('ru-RU').format(value) + ' ₽';
   const screens = {booking:document.querySelector('.booking-panel'),menu:$('menu')};
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -131,9 +133,9 @@
     if(!list){button.style.left=t.x+'%';button.style.top=t.y+'%';button.classList.toggle('filtered',!matches(t));if(!matches(t)){button.disabled=true;button.setAttribute('aria-hidden','true');}}
     button.dataset.tableId=t.id;
     button.setAttribute('aria-pressed', String(selected === t.id));
-    button.setAttribute('aria-label', `Столик №${t.id}, ${t.capacity} места, ${t.rate} рублей в час, ${t.zone}, ${busy?'занят':'свободен'}`);
-    button.innerHTML = list ? `<span>Столик №${t.id}<small>${t.zone} · до ${t.capacity} гостей · ${money(t.rate)}/ч</small></span><span>${busy?'Занят':selected===t.id?'Выбран':'Выбрать'}</span>` : `<strong>${String(t.id).padStart(2,'0')}</strong><small>${t.capacity} места</small><small class=map-status>${busy?'Занят':selected===t.id?'Выбран':''}</small>`;
-    button.addEventListener('click',()=> { sync(); if(occupied(t.id)){selected=null;render();say('Этот столик уже занят. Выберите другой.');return;} selected=t.id;render();(list ? $('table-list') : $('map')).querySelector('[aria-pressed="true"]').focus();say(`Выбран столик №${t.id}. Укажите гостей и часы.`);if(matchMedia('(max-width:1050px)').matches)scrollPanelTo(screens.booking,document.querySelector('.reservation'),true); });
+    button.setAttribute('aria-label', `Столик №${t.id}, ${counted(t.capacity,['место','места','мест'])}, ${t.rate} рублей в час, ${t.zone}, ${busy?'занят':'свободен'}`);
+    button.innerHTML = list ? `<span>Столик №${t.id}<small>${t.zone} · до ${t.capacity} гостей · ${money(t.rate)}/ч</small></span><span>${busy?'Занят':selected===t.id?'Выбран':'Выбрать'}</span>` : `<strong>${String(t.id).padStart(2,'0')}</strong><small>${counted(t.capacity,['место','места','мест'])}</small><small class=map-status>${busy?'Занят':selected===t.id?'Выбран':''}</small>`;
+    button.addEventListener('click',()=> { sync(); if(occupied(t.id)){selected=null;render();say('Этот столик уже занят. Выберите другой.');return;} selected=t.id;render();(list ? $('table-list') : $('map')).querySelector('[aria-pressed="true"]').focus();say(`Выбран столик №${t.id}. Укажите количество гостей и длительность.`);if(matchMedia('(max-width:1050px)').matches)scrollPanelTo(screens.booking,document.querySelector('.reservation'),true); });
     return button;
   }
   function render() {
@@ -143,11 +145,11 @@
     $('map').replaceChildren(...tables.map(t=>tableButton(t,false)));
     $('table-list').replaceChildren(...visible.map(t=>tableButton(t,true)));
     $('no-results').hidden=visible.length>0;
-    $('available').textContent=`${tables.filter(t=>!occupied(t.id)).length} из ${tables.length} свободны`;
+    $('available').textContent=`Свободно: ${tables.filter(t=>!occupied(t.id)).length} из ${tables.length}`;
     $('count').textContent=state.bookings.length;
     $('to-menu').hidden=!state.bookings.length;
     const t=tables.find(t=>t.id===selected), previous=Number($('guests').value)||1;
-    $('guests').replaceChildren(...Array.from({length:t?t.capacity:6},(_,i)=>new Option(String(i+1),String(i+1))));
+    $('guests').replaceChildren(...Array.from({length:t?t.capacity:6},(_,i)=>new Option(counted(i+1,['гость','гостя','гостей']),String(i+1))));
     $('guests').value=String(Math.min(previous,t?t.capacity:6));
     $('guests').disabled=!t;
     $('confirm').disabled=!t;
@@ -157,7 +159,7 @@
     if(!state.bookings.length){const p=document.createElement('p');p.className='empty';p.textContent='Здесь появятся ваши встречи. Выберите первый столик.';$('bookings').append(p);}
     state.bookings.forEach(b=> {
       const table=tables.find(t=>t.id===b.tableId), card=document.createElement('article');card.className='booking-card';
-      card.innerHTML=`<div><h3>Столик №${table.id} · ${table.zone}</h3><p>Гостей: ${b.guests} · Часов: ${b.hours} · ${money(table.rate*b.hours)}</p><p>Активна до отмены</p><div class="booking-orders">${(b.orders||[]).map((o,i)=>`<p><b>Заказ ${i+1} · ${money(itemsTotal(o.items))}</b><br>${o.items.map(item=>`${DOLCE_MENU.find(d=>d.id===item.dishId).name} × ${item.quantity}`).join(' · ')}</p>`).join('')}</div></div>`;
+      card.innerHTML=`<div><h3>Столик №${table.id} · ${table.zone}</h3><p>${counted(b.guests,['гость','гостя','гостей'])} · ${counted(b.hours,['час','часа','часов'])} · ${money(table.rate*b.hours)}</p><p>Активна до отмены</p><div class="booking-orders">${(b.orders||[]).map((o,i)=>`<p><b>Заказ ${i+1} · ${money(itemsTotal(o.items))}</b><br>${o.items.map(item=>`${DOLCE_MENU.find(d=>d.id===item.dishId).name} × ${item.quantity}`).join(' · ')}</p>`).join('')}</div></div>`;
       const order=document.createElement('button');order.textContent='Заказать к столу ↗';order.className='order-link';order.addEventListener('click',()=>{orderTable=table.id;renderMenu();navigateView('#menu',{focusElement:$('order-table'),preserveScroll:true});});card.append(order);
       const cancel=document.createElement('button');cancel.textContent='Отменить бронь';cancel.setAttribute('aria-label',`Отменить бронь столика №${table.id}`);
       cancel.addEventListener('click',()=>{sync();persist({...state,bookings:state.bookings.filter(x=>x.tableId!==table.id)});render();say(`Бронь столика №${table.id} отменена. Столик свободен.`);$('my-title').tabIndex=-1;$('my-title').focus();});card.append(cancel);$('bookings').append(card);
