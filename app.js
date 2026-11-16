@@ -45,7 +45,7 @@
   }
   function read() {
     try { const raw = localStorage.getItem(KEY); return raw === null ? initial() : validate(JSON.parse(raw)); }
-    catch { storageError('Не удалось прочитать сохранённые брони. Работа продолжается в памяти вкладки; после перезагрузки изменения могут пропасть. Сброс демо позволяет восстановить сохранение.'); return null; }
+    catch { storageError('Не удалось прочитать сохранённые брони. Работа продолжается в памяти вкладки; после перезагрузки изменения могут пропасть. Сброс броней позволяет восстановить сохранение.'); return null; }
   }
   state = read() || initial();
   function persist(next) {
@@ -111,7 +111,7 @@
   });
   $('reset').addEventListener('click',()=>$('reset-dialog').showModal());
   $('keep').addEventListener('click',()=>$('reset-dialog').close());
-  $('reset-confirm').addEventListener('click',()=>{persist(initial());selected=null;$('capacity').value='0';$('rate').value='0';$('hours').value='2';render();$('reset-dialog').close();say('Демо сброшено. Столики №2 и №6 заняты, остальные свободны.');});
+  $('reset-confirm').addEventListener('click',()=>{persist(initial());selected=null;$('capacity').value='0';$('rate').value='0';$('hours').value='2';render();$('reset-dialog').close();say('Брони сброшены. Столики №2 и №6 заняты, остальные свободны.');});
   window.addEventListener('storage',event=>{if(event.key===KEY||event.key===null){const latest=read();if(latest){state=latest;render();say('Брони обновлены из другой вкладки.');}}});
   function itemsTotal(items){return items.reduce((sum,item)=>sum+DOLCE_MENU.find(d=>d.id===item.dishId).price*item.quantity,0);}
   function currentBooking(){return state.bookings.find(b=>b.tableId===orderTable);}
