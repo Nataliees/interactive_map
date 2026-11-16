@@ -14,6 +14,74 @@
   const categories=['Закуски','Первые блюда','Вторые блюда','Напитки б/а','Десерты','Алкоголь'];
   const $ = id => document.getElementById(id);
   const money = value => new Intl.NumberFormat('ru-RU').format(value) + ' ₽';
+  const screens = {booking:document.querySelector('.booking-panel'),menu:$('menu')};
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const viewRoutes = new Set(['#booking','#my-bookings','#menu','#menu-cart']);
+  let currentView = null, transitionNumber = 0, viewAnimations = [], transitionDone = Promise.resolve();
+
+  function scrollPanelTo(panel, element, smooth = false) {
+    const top = element === panel ? 0 : panel.scrollTop + element.getBoundingClientRect().top - panel.getBoundingClientRect().top - 18;
+    panel.scrollTo({top:Math.max(0,top),behavior:smooth && !reducedMotion.matches?'smooth':'instant'});
+  }
+  async function navigateView(route, {push=true, animate=true, focus=true, focusElement=null, preserveScroll=false} = {}) {
+    if(!viewRoutes.has(route)) return false;
+    const next = route === '#menu' || route === '#menu-cart' ? 'menu' : 'booking';
+    const destination = screens[next], previous = currentView && screens[currentView];
+    if(push && location.hash !== route) history.pushState(null,'',route);
+    if(next !== currentView) {
+      const number = ++transitionNumber;
+      viewAnimations.forEach(animation=>animation.cancel());
+      viewAnimations=[];
+      document.querySelectorAll('dialog[open]').forEach(dialog=>dialog.close());
+      Object.entries(screens).forEach(([name,panel])=>{
+        const active=name===next;
+        panel.hidden=!active && panel!==previous;
+        panel.inert=!active;
+        panel.setAttribute('aria-hidden',String(!active));
+        panel.classList.toggle('is-active',active);
+      });
+      currentView=next;
+      const direction=next==='menu'?1:-1;
+      if(previous && animate && !reducedMotion.matches && typeof destination.animate==='function') {
+        viewAnimations=[
+          previous.animate([{opacity:1,transform:'translateX(0)'},{opacity:0,transform:`translateX(${-direction*5}%)`}],{duration:280,easing:'ease-out'}),
+          destination.animate([{opacity:0,transform:`translateX(${direction*8}%)`},{opacity:1,transform:'translateX(0)'}],{duration:360,easing:'cubic-bezier(.22,.7,.2,1)'})
+        ];
+      }
+      transitionDone=Promise.allSettled(viewAnimations.map(animation=>animation.finished)).then(()=>{
+        if(number!==transitionNumber)return;
+        Object.entries(screens).forEach(([name,panel])=>{panel.hidden=name!==currentView;});
+        viewAnimations=[];
+      });
+    }
+    const number=transitionNumber;
+    document.querySelectorAll('header nav a').forEach(link=>{
+      if(link.getAttribute('href')===route)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
+    });
+    // Reveal a routed subsection before moving focus; other view positions stay intact.
+    if(route==='#menu-cart')$('menu-cart').open=true;
+    if(!preserveScroll)scrollPanelTo(destination,document.querySelector(route));
+    else if(focusElement)scrollPanelTo(destination,focusElement);
+    await transitionDone;
+    if(number!==transitionNumber)return false;
+    if(focus){
+      const target=focusElement || (route==='#my-bookings'?$('my-title'):route==='#menu-cart'?$('menu-cart').querySelector('summary'):next==='menu'?$('menu-title'):$('booking-title'));
+      if(!target.matches('a,button,input,select,summary,[tabindex]'))target.tabIndex=-1;
+      target.focus({preventScroll:true});
+    }
+    return true;
+  }
+  document.addEventListener('click',event=>{
+    if(event.defaultPrevented || event.button!==0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)return;
+    const switchButton=event.target.closest('button[data-screen]');
+    if(switchButton){event.preventDefault();navigateView('#'+switchButton.dataset.screen,{preserveScroll:true});return;}
+    const link=event.target.closest('a[href^="#"]');
+    if(link && viewRoutes.has(link.getAttribute('href'))){event.preventDefault();navigateView(link.getAttribute('href'));}
+  });
+  const restoreView=()=>navigateView(viewRoutes.has(location.hash)?location.hash:'#booking',{push:false});
+  window.addEventListener('popstate',restoreView);
+  window.addEventListener('hashchange',restoreView);
+
   const initial = () => ({version:1, bookings:[]});
   let state = initial(), selected = null, storageOK = true;
   function storageError(text) { storageOK = false; $('storage-error').hidden = false; $('storage-error').textContent = text; }
@@ -65,7 +133,7 @@
     button.setAttribute('aria-pressed', String(selected === t.id));
     button.setAttribute('aria-label', `Столик №${t.id}, ${t.capacity} места, ${t.rate} рублей в час, ${t.zone}, ${busy?'занят':'свободен'}`);
     button.innerHTML = list ? `<span>Столик №${t.id}<small>${t.zone} · до ${t.capacity} гостей · ${money(t.rate)}/ч</small></span><span>${busy?'Занят':selected===t.id?'Выбран':'Выбрать'}</span>` : `<strong>${String(t.id).padStart(2,'0')}</strong><small>${t.capacity} места</small><small class=map-status>${busy?'Занят':selected===t.id?'Выбран':''}</small>`;
-    button.addEventListener('click',()=> { sync(); if(occupied(t.id)){selected=null;render();say('Этот столик уже занят. Выберите другой.');return;} selected=t.id;render();(list ? $('table-list') : $('map')).querySelector('[aria-pressed="true"]').focus();say(`Выбран столик №${t.id}. Укажите гостей и часы.`);if(matchMedia('(max-width:800px)').matches)document.querySelector('.reservation').scrollIntoView({behavior:'smooth'}); });
+    button.addEventListener('click',()=> { sync(); if(occupied(t.id)){selected=null;render();say('Этот столик уже занят. Выберите другой.');return;} selected=t.id;render();(list ? $('table-list') : $('map')).querySelector('[aria-pressed="true"]').focus();say(`Выбран столик №${t.id}. Укажите гостей и часы.`);if(matchMedia('(max-width:1050px)').matches)scrollPanelTo(screens.booking,document.querySelector('.reservation'),true); });
     return button;
   }
   function render() {
@@ -90,7 +158,7 @@
     state.bookings.forEach(b=> {
       const table=tables.find(t=>t.id===b.tableId), card=document.createElement('article');card.className='booking-card';
       card.innerHTML=`<div><h3>Столик №${table.id} · ${table.zone}</h3><p>Гостей: ${b.guests} · Часов: ${b.hours} · ${money(table.rate*b.hours)}</p><p>Активна до отмены</p><div class="booking-orders">${(b.orders||[]).map((o,i)=>`<p><b>Заказ ${i+1} · ${money(itemsTotal(o.items))}</b><br>${o.items.map(item=>`${DOLCE_MENU.find(d=>d.id===item.dishId).name} × ${item.quantity}`).join(' · ')}</p>`).join('')}</div></div>`;
-      const order=document.createElement('button');order.textContent='Заказать к столу ↗';order.className='order-link';order.addEventListener('click',()=>{orderTable=table.id;renderMenu();$('menu').scrollIntoView({behavior:'smooth'});$('order-table').focus({preventScroll:true});});card.append(order);
+      const order=document.createElement('button');order.textContent='Заказать к столу ↗';order.className='order-link';order.addEventListener('click',()=>{orderTable=table.id;renderMenu();navigateView('#menu',{focusElement:$('order-table'),preserveScroll:true});});card.append(order);
       const cancel=document.createElement('button');cancel.textContent='Отменить бронь';cancel.setAttribute('aria-label',`Отменить бронь столика №${table.id}`);
       cancel.addEventListener('click',()=>{sync();persist({...state,bookings:state.bookings.filter(x=>x.tableId!==table.id)});render();say(`Бронь столика №${table.id} отменена. Столик свободен.`);$('my-title').tabIndex=-1;$('my-title').focus();});card.append(cancel);$('bookings').append(card);
     });
@@ -204,4 +272,6 @@
     try{if(navigator.locks)await navigator.locks.request(KEY,submit);else submit();}catch{render();$('order-message').textContent='Не удалось сохранить заказ. Попробуйте ещё раз.';}
   });
   render();
+  document.body.classList.add('screen-app');
+  navigateView(viewRoutes.has(location.hash)?location.hash:'#booking',{push:false,animate:false,focus:false,preserveScroll:location.hash!=='#my-bookings' && location.hash!=='#menu-cart'});
 })();

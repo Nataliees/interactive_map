@@ -17,29 +17,45 @@
 @media(max-width:440px){.dish-feature{display:block}.feature-photo{height:255px;min-height:0;border-radius:18px 18px 0 0;border-width:4px}.feature-copy{padding:22px}.feature-copy h3{font-size:29px;max-width:250px;line-height:1.08}.feature-close{top:13px;right:11px}.feature-copy .feature-description{font-size:13px}.feature-ingredients{font-size:11px}.feature-weight{font-size:11px}.feature-price{font-size:27px;margin:17px 0}.feature-add{font-size:12px;padding:14px}.feature-tag{font-size:10px}.feature-book{font-size:12px}.feature-actions .dish-more{font-size:11px}.menu-topline{gap:6px}.menu-topline .eyebrow{letter-spacing:1px}.menu-toolbar label{font-size:9px}.menu-toolbar input,.menu-toolbar select{font-size:11px}.menu-editorial h2{font-size:36px}.menu-motto{font-size:17px}.menu-canvas{gap:15px}.feature-empty{padding-top:220px;min-height:320px}.menu-cart .cart h2{font-size:26px}.dish-choice{font-size:12px}.dish-choice small{font-size:9px}}
 .menu-canvas>.menu-categories{order:0;width:auto}
 
-/* Two coordinated panels: reservations on the left, menu on the right. */
-header, main, footer { max-width: 2040px; }
-header, footer { padding-left: 32px; padding-right: 32px; }
-main { padding: 0 32px; }
-.intro { padding: 32px 0 18px; }
-h1 { font-size: clamp(36px, 3.4vw, 52px); margin: 15px 0; }
-.workspace-grid {
+
+/* Each view occupies the screen. Its own content remains scrollable. */
+body.screen-app {
+  height: 100vh;
+  height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
-  gap: 24px;
-  margin-bottom: 40px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
 }
-.workspace-grid > .workspace-panel {
+.screen-app > header, .screen-app > main, .screen-app > footer {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+}
+.screen-app > header { min-height: 76px; padding: 14px 24px; }
+.screen-app > header .brand { font-size: 25px; }
+.screen-app > header .brand span { font-size: 7px; margin-top: 7px; }
+.screen-app > main { margin: 0; align-self: stretch; height: 100%; display: flex; flex-direction: column; min-height: 0; padding: 0 20px 12px; overflow: hidden; }
+.screen-app > footer { padding: 12px 24px; }
+.screen-app .message { min-height: 24px; margin: 5px 2px; font-size: 12px; }
+.screen-app .notice { flex-shrink: 0; padding: 10px 14px; margin: 4px 0; font-size: 12px; }
+.screen-app .workspace-grid { position: relative; flex: 1; min-height: 0; margin: 0; overflow: hidden; }
+.screen-app .workspace-grid > .workspace-panel {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   min-width: 0;
   margin: 0;
-  padding: 24px;
-  position: relative;
+  padding: 24px 30px;
   border: 1px solid #aeb29c;
   border-radius: 22px;
   background: radial-gradient(ellipse at 15% 35%, #fffaf14d, transparent 60%), #f4eee4;
   isolation: isolate;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #a8b095 #f4eee4;
+  scroll-behavior: auto;
 }
 .workspace-panel::before {
   content: '';
@@ -55,145 +71,118 @@ h1 { font-size: clamp(36px, 3.4vw, 52px); margin: 15px 0; }
   opacity: .75;
   pointer-events: none;
 }
-.panel-topline {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid #cbcbb8;
-  padding-bottom: 18px;
-  margin-bottom: 24px;
-}
+.workspace-panel.is-active { z-index: 2; }
+.workspace-panel[aria-hidden="true"] { pointer-events: none; z-index: 1; }
+.workspace-panel:focus { outline: none; }
+.panel-topline, .menu-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-bottom: 16px; border-bottom: 1px solid #cbcbb8; }
 .panel-topline a { font-size: 11px; color: var(--olive); text-decoration: none; }
-.booking-panel .booking { display: flex; flex-direction: column; gap: 22px; }
-.booking-panel .hall { width: 100%; min-width: 0; }
-.booking-panel .floor { min-width: 580px; height: 680px; }
-.booking-panel .stage { height: 110px; padding-top: 15px; }
-.booking-panel .zone-label { top: 110px; }
+.panel-actions { display: flex; align-items: center; gap: 20px; }
+.screen-switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 1px solid var(--olive);
+  border-radius: 28px;
+  background: var(--olive);
+  color: #fffdf4;
+  padding: 10px 22px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.screen-switch:hover { background: #3c4726; }
+.screen-app header a[aria-current="page"] { text-decoration: underline; text-underline-offset: 6px; }
+.booking-panel .panel-topline, .booking-panel .intro, .booking-panel .booking, .booking-panel .my-bookings { max-width: 1500px; margin-left: auto; margin-right: auto; }
+.booking-panel .intro { padding: 22px 0; align-items: center; }
+.booking-panel .intro h1 { font-size: 36px; margin: 10px 0; letter-spacing: -1px; }
+.booking-panel .intro h1 br { display: none; }
+.booking-panel .intro .eyebrow { font-size: 8px; }
+.booking-panel .intro .lead { font-size: 11px; }
+.booking-panel .intro-note { padding: 0 20px; }
+.booking-panel .intro-note .sprig { display: none; }
+.booking-panel .intro-note p { font-size: 18px; }
+.booking-panel .intro-note small { margin-top: 10px; font-size: 9px; }
+.booking-panel .booking { grid-template-columns: minmax(0, 1fr) 310px; gap: 28px; }
+.booking-panel .hall { min-width: 0; }
+.booking-panel .floor { min-width: 580px; height: clamp(480px, 60vh, 660px); height: clamp(480px, 60dvh, 660px); }
+.booking-panel .stage { height: 100px; padding-top: 12px; }
+.booking-panel .zone-label { top: 100px; }
+.booking-panel .reservation { background: #f8f5ecda; border-radius: 18px; padding: 26px; position: sticky; top: 0; }
 .booking-panel .map-help span { display: inline; }
-.booking-panel .reservation {
-  width: 100%;
-  position: static;
-  padding: 24px;
-  border-radius: 18px;
-  background: #f8f5ecda;
-}
-.booking-panel .selection { padding: 12px 0 18px; min-height: 0; }
-.booking-panel #reservation-form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 15px 20px;
-  align-items: end;
-}
-.booking-panel #reservation-form label + label { margin-top: 0; }
-.booking-panel .total { margin: 0; padding: 14px 0 0; }
-.booking-panel #confirm { min-height: 48px; }
-.booking-panel .menu-next, .booking-panel #reservation-form > .fine { grid-column: 1 / -1; margin: 0; }
-.booking-panel .my-bookings { padding: 25px 0 0; margin-top: 28px; }
+.booking-panel .my-bookings { padding-bottom: 15px; }
 .booking-panel .empty { background: #f8f5ecb8; }
-.booking-panel .booking-card { gap: 12px; }
-.booking-panel .booking-card > div { flex-basis: 100%; }
+.booking-panel .booking-card { gap: 14px; }
 #reset, #reset-confirm { text-align: center; }
 #reset-confirm { justify-content: center; }
 .dialog-actions button { min-height: 48px; }
 
-/* The menu responds to its half of the page rather than the whole viewport. */
-.workspace-grid .menu-toolbar { flex-wrap: wrap; gap: 12px; }
-.workspace-grid .menu-toolbar label { min-width: 0; max-width: none; flex: 1 1 40%; }
-.workspace-grid .cart-shortcut { padding: 0; }
-.workspace-grid .menu-canvas {
-  grid-template-columns: 125px minmax(0, 1fr);
-  gap: 18px;
-  min-height: 0;
-  padding-top: 12px;
-}
-.workspace-grid .menu-editorial {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding-top: 0;
-}
-.workspace-grid .menu-editorial > .eyebrow, .workspace-grid .menu-botanical { display: none; }
-.workspace-grid .menu-editorial h2 { font-size: 40px; margin: 10px 0; letter-spacing: -1px; }
-.workspace-grid .menu-motto { font-size: 17px; }
-.workspace-grid .menu-motto br { display: none; }
-.workspace-grid .menu-categories { min-width: 0; }
-.workspace-grid .menu-categories::before { top: 0; }
-.workspace-grid .menu-categories button.route-stop { gap: 8px; font-size: 10px; min-height: 72px; }
-.workspace-grid .menu-categories .route-stop:nth-child(n) { margin-left: 0; }
-.workspace-grid .route-name { max-width: 72px; }
-.workspace-grid .menu-experience { padding-top: 0; }
-.workspace-grid .dish-feature { grid-template-columns: 46% 54%; min-height: 390px; }
-.workspace-grid .feature-photo { min-height: 390px; }
-.workspace-grid .feature-copy { padding: 30px 18px 20px; }
-.workspace-grid .feature-copy h3 { font-size: 25px; overflow-wrap: anywhere; }
-.workspace-grid .feature-price { font-size: 25px; }
-.workspace-grid .menu-cart .cart { display: block; padding: 22px; }
-.workspace-grid .cart-checkout { margin-top: 20px; }
-.workspace-grid .cart-checkout .fine { max-width: none; }
-.workspace-grid .menu-cart .cart-row { max-width: none; }
-.workspace-grid .cart-checkout .primary { max-width: none; justify-content: center; }
-
-@media (min-width: 1101px) and (max-width: 1500px) {
-  .workspace-grid .menu-canvas { display: flex; flex-direction: column; gap: 16px; }
-  .workspace-grid .menu-categories {
-    flex-direction: row;
-    gap: 12px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding: 6px 3px 14px;
-  }
-  .workspace-grid .menu-categories::before {
-    top: 28px; bottom: auto; left: 0; right: 0;
-    width: auto; height: 1px; border: 0;
-    border-top: 1px solid #a2aa89;
-    transform: none; border-radius: 0;
-  }
-  .workspace-grid .menu-categories button.route-stop {
-    flex-direction: column; min-width: 72px; min-height: 80px;
-    text-align: center; gap: 10px;
-  }
-  .workspace-grid .menu-categories button.all-menu { white-space: nowrap; align-self: start; margin-top: 12px; }
-  .workspace-grid .feature-copy h3 { font-size: 26px; }
-}
-@media (max-width: 1100px) {
-  .workspace-grid { grid-template-columns: minmax(0, 1fr); }
-  .workspace-grid .menu-canvas { grid-template-columns: 145px minmax(0, 1fr); }
-  .workspace-grid .menu-categories button.route-stop { font-size: 12px; }
-  .workspace-grid .route-name { max-width: 88px; }
-  .workspace-grid .feature-copy h3 { font-size: 29px; }
+#menu > .menu-topline, #menu > .menu-toolbar, #menu > .menu-canvas, #menu > .fine, #menu > .menu-cart { max-width: 1700px; margin-left: auto; margin-right: auto; }
+#menu .menu-canvas { grid-template-columns: 155px minmax(0, 1fr); gap: 20px; min-height: 0; padding-top: 12px; }
+#menu .menu-editorial { grid-column: 1 / -1; display: flex; align-items: center; gap: 24px; padding: 0; }
+#menu .menu-editorial > .eyebrow, #menu .menu-botanical { display: none; }
+#menu .menu-editorial h2 { font-size: 40px; letter-spacing: -1px; margin: 5px 0; }
+#menu .menu-motto { font-size: 17px; }
+#menu .menu-motto br { display: none; }
+#menu .menu-categories::before { top: 0; }
+#menu .menu-categories .route-stop:nth-child(n) { margin-left: 0; }
+#menu .menu-categories button.route-stop { font-size: 12px; gap: 12px; }
+#menu .route-name { max-width: 90px; }
+#menu .menu-experience { padding-top: 0; }
+#menu .dish-feature { grid-template-columns: 46% 54%; min-height: 390px; }
+#menu .feature-photo { min-height: 390px; }
+#menu .feature-copy { padding: 30px; }
+#menu .feature-copy h3 { font-size: 32px; overflow-wrap: anywhere; }
+#menu .feature-description { font-size: 14px; }
+#menu .feature-ingredients { font-size: 12px; }
+#menu .feature-price { font-size: 28px; }
+#menu .feature-add { font-size: 13px; max-width: 380px; margin: auto; }
+#menu .menu-cart .cart { grid-template-columns: minmax(0, 1fr) 320px; gap: 25px; }
+#menu .cart-checkout .primary { justify-content: center; }
+@media (max-width: 1050px) {
+  .booking-panel .booking { display: flex; flex-direction: column; }
+  .booking-panel .hall, .booking-panel .reservation { width: 100%; }
+  .booking-panel .reservation { position: static; }
+  .booking-panel .intro-note { display: none; }
+  #menu .feature-copy h3 { font-size: 27px; }
+  #menu .feature-copy { padding: 28px 22px; }
 }
 @media (max-width: 700px) {
-  header, footer { padding-left: 20px; padding-right: 20px; }
-  main { padding: 0 16px; }
-  .intro { padding: 25px 4px 15px; }
-  .workspace-grid { gap: 20px; margin-bottom: 28px; }
-  .workspace-grid > .workspace-panel { padding: 20px 16px; border-radius: 18px; }
-  .panel-topline .eyebrow { font-size: 8px; letter-spacing: 1px; }
-  .panel-topline a { font-size: 10px; }
-  .booking-panel .floor { min-width: 580px; }
-  .booking-panel .reservation { padding: 20px; }
-  .booking-panel #reservation-form { display: block; }
-  .booking-panel #reservation-form label + label { margin-top: 16px; }
-  .booking-panel .total { margin: 20px 0; padding: 20px 0 0; }
-  .booking-panel .menu-next, .booking-panel #reservation-form > .fine { margin-top: 16px; }
-  .workspace-grid .menu-canvas { display: flex; flex-direction: column; gap: 16px; }
-  .workspace-grid .menu-editorial { gap: 18px; }
-  .workspace-grid .menu-editorial h2 { font-size: 36px; }
-  .workspace-grid .menu-motto { font-size: 15px; }
-  .workspace-grid .menu-motto br { display: block; }
-  .workspace-grid .menu-categories { gap: 18px; }
-  .workspace-grid .menu-categories::before { top: 29px; }
-  .workspace-grid .menu-categories button.route-stop { font-size: 10px; }
-  .workspace-grid .feature-copy h3 { font-size: 27px; }
-  .workspace-grid .feature-photo { min-height: 340px; }
-  .workspace-grid .menu-cart .cart { padding: 18px; }
+  .screen-app > header { padding: 12px 16px; min-height: 74px; }
+  .screen-app > main { padding: 0 8px 8px; }
+  .screen-app > footer { padding: 8px 16px; font-size: 8px; gap: 4px; }
+  .screen-app > header .brand { font-size: 22px; }
+  .screen-app > header .brand span { font-size: 6px; letter-spacing: 1px; }
+  .screen-app .workspace-grid > .workspace-panel { padding: 18px 16px; border-radius: 18px; }
+  .panel-topline, .menu-topline { align-items: center; gap: 10px; }
+  .panel-topline .eyebrow, .menu-topline .eyebrow { font-size: 8px; letter-spacing: 1px; }
+  .panel-actions { gap: 10px; }
+  .panel-actions a { display: none; }
+  .screen-switch { font-size: 11px; padding: 9px 14px; min-height: 40px; }
+  .booking-panel .intro { padding: 20px 0; }
+  .booking-panel .intro h1 { font-size: 30px; }
+  .booking-panel .intro .lead br { display: none; }
+  .booking-panel .reservation { padding: 22px; }
+  #menu .menu-canvas { display: flex; flex-direction: column; gap: 16px; }
+  #menu .menu-editorial { gap: 18px; }
+  #menu .menu-editorial h2 { font-size: 34px; }
+  #menu .menu-motto { font-size: 15px; }
+  #menu .menu-motto br { display: block; }
+  #menu .menu-categories::before { top: 29px; }
+  #menu .menu-categories button.route-stop { font-size: 10px; }
+  #menu .feature-copy h3 { font-size: 25px; }
+  #menu .feature-photo { min-height: 330px; }
+  #menu .menu-cart .cart { display: block; padding: 18px; }
+  #menu .cart-checkout { margin-top: 18px; }
+  #menu .feature-description { font-size: 12px; }
+  #menu .feature-ingredients { font-size: 11px; }
 }
 @media (max-width: 440px) {
-  .workspace-grid .dish-feature { display: block; }
-  .workspace-grid .feature-photo { min-height: 0; height: 235px; }
-  .workspace-grid .feature-copy { padding: 22px; }
-  .workspace-grid .feature-copy h3 { font-size: 28px; }
-  .workspace-grid .menu-toolbar label { flex-basis: 100%; }
+  #menu .dish-feature { display: block; }
+  #menu .feature-photo { min-height: 0; height: 235px; }
+  #menu .feature-copy { padding: 22px; }
+  #menu .feature-copy h3 { font-size: 28px; }
+  #menu .menu-toolbar label { flex-basis: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .screen-app *, .screen-app *::before, .screen-app *::after { scroll-behavior: auto !important; }
 }
