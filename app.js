@@ -132,7 +132,7 @@
       '<path d="M130 91 L182 66 L216 97 L162 122 Z" fill="#ded7bc"/><path d="M130 91 V130 L162 151 V122 Z" fill="#c1b18c"/><path d="M162 122 L216 97 V131 L162 151 Z" fill="#e7dec4"/><path d="M131 112 L161 134 L215 114" fill="none" stroke="#b0a07a" stroke-width="5"/><circle cx="178" cy="84" r="10" fill="#9c8d76"/>',
       '<path d="M144 43 H198 L192 98 Q171 128 150 98 Z" fill="#e4e4d3" stroke="#9eac83" stroke-width="2"/><path d="M147 75 H195 L190 97 Q171 118 152 97 Z" fill="#a4ad87"/><path d="M171 113 V152 M148 154 H195" fill="none" stroke="#9eac83" stroke-width="3"/>'
     ][category];
-    return `<svg class="dish-art" viewBox="0 0 340 200" aria-hidden="true"><ellipse cx="170" cy="124" rx="90" ry="56" fill="#c7cfb7" opacity=".4"/><ellipse cx="170" cy="111" rx="91" ry="59" fill="#f7f2ec"/><ellipse cx="170" cy="111" rx="77" ry="48" fill="none" stroke="#d5d9c7"/><g fill="#87986b">${art}</g><path d="M53 67 V144 M47 67 V89 Q53 101 59 89 V67 M286 67 V144 M280 68 V108 H286" fill="none" stroke="#9eac83" stroke-width="3" stroke-linecap="round"/></svg>`;
+    return `<svg class="dish-art" width="340" height="200" viewBox="0 0 340 200" aria-hidden="true"><ellipse cx="170" cy="124" rx="90" ry="56" fill="#c7cfb7" opacity=".4"/><ellipse cx="170" cy="111" rx="91" ry="59" fill="#f7f2ec"/><ellipse cx="170" cy="111" rx="77" ry="48" fill="none" stroke="#d5d9c7"/><g fill="#87986b">${art}</g><path d="M53 67 V144 M47 67 V89 Q53 101 59 89 V67 M286 67 V144 M280 68 V108 H286" fill="none" stroke="#9eac83" stroke-width="3" stroke-linecap="round"/></svg>`;
   }
   function renderFeature(d,canOrder){
     const feature=$('dish-feature');feature.replaceChildren();
@@ -161,7 +161,7 @@
       '<path d="M10 4 H26 L25 14 Q18 25 11 14 Z M18 21 V32 M11 32 H25"/>'
     ];
     $('menu-categories').replaceChildren(...categories.map((name,index)=>{
-      const button=document.createElement('button');button.className='route-stop';button.innerHTML=`<span class="route-icon"><svg viewBox="0 0 36 36" aria-hidden="true">${icons[index]}</svg></span><span class="route-name">${name}</span>`;
+      const button=document.createElement('button');button.className='route-stop';button.innerHTML=`<span class="route-icon"><svg width="27" height="27" viewBox="0 0 36 36" aria-hidden="true">${icons[index]}</svg></span><span class="route-name">${name}</span>`;
       button.setAttribute('aria-pressed',String(category===index));button.addEventListener('click',()=>{category=index;activeDish=DOLCE_MENU.find(d=>d.category===index)?.id??null;renderMenu();$('menu-categories').children[index].focus({preventScroll:true});});return button;
     }));
     const all=document.createElement('button');all.className='all-menu';all.textContent='Всё меню';all.setAttribute('aria-pressed',String(category===-1));all.addEventListener('click',()=>{category=-1;renderMenu();$('menu-categories').lastElementChild.focus({preventScroll:true});});$('menu-categories').append(all);
