@@ -10,7 +10,7 @@
       y:side?24+((id-21)%6)*12:27+Math.floor(i/4)*13,
       shape:side?'booth':capacity===6?'long':'round'};
   });
-  let orderTable=null, category=-1;
+  let orderTable=null, category=2, activeDish=10;
   const categories=['Закуски','Первые блюда','Вторые блюда','Напитки б/а','Десерты','Алкоголь'];
   const $ = id => document.getElementById(id);
   const money = value => new Intl.NumberFormat('ru-RU').format(value) + ' ₽';
@@ -134,6 +134,17 @@
     ][category];
     return `<svg class="dish-art" viewBox="0 0 340 200" aria-hidden="true"><ellipse cx="170" cy="124" rx="90" ry="56" fill="#c7cfb7" opacity=".4"/><ellipse cx="170" cy="111" rx="91" ry="59" fill="#f7f2ec"/><ellipse cx="170" cy="111" rx="77" ry="48" fill="none" stroke="#d5d9c7"/><g fill="#87986b">${art}</g><path d="M53 67 V144 M47 67 V89 Q53 101 59 89 V67 M286 67 V144 M280 68 V108 H286" fill="none" stroke="#9eac83" stroke-width="3" stroke-linecap="round"/></svg>`;
   }
+  function renderFeature(d,canOrder){
+    const feature=$('dish-feature');feature.replaceChildren();
+    if(!d){feature.innerHTML=`<div class="feature-empty">${dishArt(category<0?2:category)}<h3>Найдите свой вкус</h3><p>Выберите блюдо в списке ниже.</p></div>`;return;}
+    feature.innerHTML=`<div class="feature-photo">${dishArt(d.category)}<img src="${d.image}" alt="${d.name}"></div><article class="feature-copy"><span class="feature-tag">${categories[d.category]}</span><button type="button" class="feature-close" aria-label="Закрыть карточку блюда">×</button><h3>${d.name}</h3><p class="feature-description">${d.description}</p><p class="feature-ingredients">${d.ingredients.join(', ')}.</p><span class="feature-weight">${d.weight}</span><strong class="feature-price">${money(d.price)}</strong><div class="feature-actions"></div></article>`;
+    const photo=feature.querySelector('img');photo.addEventListener('load',()=>photo.classList.add('loaded'));photo.addEventListener('error',()=>photo.remove());
+    feature.querySelector('.feature-close').addEventListener('click',()=>{activeDish=null;renderMenu();$('dishes').querySelector(`[data-dish="${d.id}"]`)?.focus({preventScroll:true});});
+    const add=document.createElement('button');add.className='primary feature-add';add.dataset.add=d.id;add.textContent=canOrder?'Заказать к столику →':'Сначала выберите столик';add.disabled=!canOrder;add.addEventListener('click',()=>{changeCart(d.id,1);$('dish-feature').querySelector('.feature-add')?.focus({preventScroll:true});});
+    feature.querySelector('.feature-actions').append(add);
+    if(!canOrder){const link=document.createElement('a');link.href='#booking';link.className='feature-book';link.textContent='Забронировать столик →';feature.querySelector('.feature-actions').append(link);}
+    const details=document.createElement('button');details.className='dish-more';details.textContent='Состав и аллергены';details.addEventListener('click',()=>{$('dish-detail').innerHTML=`<p class="eyebrow">${categories[d.category]}</p><h2 id="dish-title">${d.name}</h2><p>${d.description}</p><p><b>Состав:</b> ${d.ingredients.join(', ')}.</p><p>${d.weight} · ${money(d.price)}</p><p class="fine">При аллергии уточните состав у администратора.</p>`;$('dish-dialog').showModal();});feature.querySelector('.feature-actions').append(details);
+  }
   function renderMenu(){
     if(!currentBooking()) orderTable=state.bookings[0]?.tableId||null;
     $('order-table').replaceChildren(...(state.bookings.length?state.bookings.map(b=>new Option(`Столик №${b.tableId}`,String(b.tableId))):[new Option('Сначала забронируйте столик','')]));
@@ -141,21 +152,29 @@
     $('order-table').disabled=!state.bookings.length;
     const b=currentBooking();
     $('menu-notice').textContent=b?`Выбирайте блюда для столика №${b.tableId}. Стоимость брони оплачивается отдельно.`:'Меню открыто для просмотра. Чтобы добавить блюда к заказу, сначала забронируйте столик.';
-    $('menu-categories').replaceChildren(...['Всё меню',...categories].map((name,index)=>{
-      const button=document.createElement('button');button.textContent=name;button.setAttribute('aria-pressed',String(category===index-1));button.addEventListener('click',()=>{category=index-1;renderMenu();$('menu-categories').children[index].focus();});return button;
+    const icons=[
+      '<path d="M8 26 Q5 8 28 5 Q30 25 8 26 Z M8 26 L25 9 M15 19 L14 12 M20 15 L26 16"/>',
+      '<path d="M5 18 H31 Q30 29 18 29 Q6 29 5 18 Z M3 18 H33 M11 32 H25 M13 12 Q9 9 13 5 M21 12 Q17 9 21 5"/>',
+      '<path d="M5 24 Q5 11 18 11 Q31 11 31 24 M3 24 H33 M8 28 H28 M18 11 V7 M15 7 H21 M12 18 L15 15 M20 17 L23 20"/>',
+      '<path d="M9 9 H27 L24 31 H12 Z M18 25 L22 3 M11 16 H25 M11 6 H25"/>',
+      '<path d="M6 17 L21 10 L30 17 V29 H6 Z M6 17 H30 M6 23 H30 M18 10 V5 M16 5 Q18 1 20 5"/>',
+      '<path d="M10 4 H26 L25 14 Q18 25 11 14 Z M18 21 V32 M11 32 H25"/>'
+    ];
+    $('menu-categories').replaceChildren(...categories.map((name,index)=>{
+      const button=document.createElement('button');button.className='route-stop';button.innerHTML=`<span class="route-icon"><svg viewBox="0 0 36 36" aria-hidden="true">${icons[index]}</svg></span><span class="route-name">${name}</span>`;
+      button.setAttribute('aria-pressed',String(category===index));button.addEventListener('click',()=>{category=index;activeDish=DOLCE_MENU.find(d=>d.category===index)?.id??null;renderMenu();$('menu-categories').children[index].focus({preventScroll:true});});return button;
     }));
+    const all=document.createElement('button');all.className='all-menu';all.textContent='Всё меню';all.setAttribute('aria-pressed',String(category===-1));all.addEventListener('click',()=>{category=-1;renderMenu();$('menu-categories').lastElementChild.focus({preventScroll:true});});$('menu-categories').append(all);
     const query=$('dish-search').value.trim().toLocaleLowerCase('ru');
     const dishes=DOLCE_MENU.filter(d=>(category===-1||d.category===category)&&[d.name,d.description,...d.ingredients].join(' ').toLocaleLowerCase('ru').includes(query));
+    if(activeDish!==null && !dishes.some(d=>d.id===activeDish))activeDish=dishes[0]?.id??null;
+    $('dish-result-count').textContent=`${dishes.length} из 30 блюд`;
     $('dishes').replaceChildren(...dishes.map(d=>{
-      const card=document.createElement('article');card.className='dish-card';
-      card.innerHTML=`<div class="dish-photo">${dishArt(d.category)}<img src="${d.image}" alt="" loading="lazy"><span>${categories[d.category]}</span></div><div class="dish-copy"><h3>${d.name}</h3><p>${d.description}</p><small>${d.weight}</small><div class="dish-bottom"><strong>${money(d.price)}</strong></div></div>`;
-      const photo=card.querySelector('img');photo.addEventListener('load',()=>photo.classList.add('loaded'));photo.addEventListener('error',()=>photo.remove());
-      const details=document.createElement('button');details.className='dish-more';details.textContent='Состав';details.setAttribute('aria-label',`Состав: ${d.name}`);details.addEventListener('click',()=>{
-        $('dish-detail').innerHTML=`<p class="eyebrow">${categories[d.category]}</p><h2 id="dish-title">${d.name}</h2><p>${d.description}</p><p><b>Состав:</b> ${d.ingredients.join(', ')}.</p><p>${d.weight} · ${money(d.price)}</p><p class="fine">При аллергии уточните состав у администратора.</p>`;$('dish-dialog').showModal();
-      });
-      const add=document.createElement('button');add.className='dish-add';add.textContent='+ В заказ';add.disabled=!b;add.setAttribute('aria-label',`Добавить: ${d.name}`);add.addEventListener('click',()=>{changeCart(d.id,1);$('dishes').querySelector(`[data-add="${d.id}"]`).focus({preventScroll:true});});add.dataset.add=d.id;
-      card.querySelector('.dish-bottom').append(details,add);return card;
+      const button=document.createElement('button');button.className='dish-choice';button.dataset.dish=d.id;button.setAttribute('aria-pressed',String(activeDish===d.id));
+      button.innerHTML=`<span>${d.name}<small>${d.weight}</small></span><strong>${money(d.price)}</strong>`;
+      button.addEventListener('click',()=>{activeDish=d.id;renderMenu();$('dishes').querySelector(`[data-dish="${d.id}"]`).focus({preventScroll:true});});return button;
     }));
+    renderFeature(dishes.find(d=>d.id===activeDish),!!b);
     if(!dishes.length){const p=document.createElement('p');p.className='empty';p.textContent='Ничего не нашли. Попробуйте другое название или категорию.';$('dishes').append(p);}
     $('cart-table').textContent=b?`Для столика №${b.tableId}`:'Выберите забронированный столик';
     $('cart-items').replaceChildren();
@@ -167,9 +186,10 @@
       row.append(controls);$('cart-items').append(row);
     }
     if(!b?.cart?.length){const p=document.createElement('p');p.className='cart-empty';p.textContent='Немного пасты, бокал лимонада? Добавьте что-нибудь из меню.';$('cart-items').append(p);}
+    $('cart-summary').textContent=money(itemsTotal(b?.cart||[]));$('cart-quantity').textContent=(b?.cart||[]).reduce((sum,item)=>sum+item.quantity,0);
     $('cart-total').textContent=money(itemsTotal(b?.cart||[]));$('place-order').disabled=!b?.cart?.length;
   }
-  $('dish-search').addEventListener('input',renderMenu);
+  $('dish-search').addEventListener('input',()=>{if(activeDish===null)activeDish=-1;renderMenu();});
   $('order-table').addEventListener('change',()=>{orderTable=Number($('order-table').value)||null;renderMenu();$('order-message').textContent='';});
   $('dish-close').addEventListener('click',()=>$('dish-dialog').close());
   $('place-order').addEventListener('click',async()=>{

@@ -13,7 +13,7 @@ const DOLCE_MENU = [
       "Базилик",
       "Песто"
     ],
-    "image": "https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/0.jpg"
   },
   {
     "id": 1,
@@ -29,7 +29,7 @@ const DOLCE_MENU = [
       "Каперсы",
       "Кунжут"
     ],
-    "image": "https://images.unsplash.com/photo-1510130387422-82bed34b37e9?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/1.jpg"
   },
   {
     "id": 2,
@@ -44,7 +44,7 @@ const DOLCE_MENU = [
       "Базилик",
       "Песто"
     ],
-    "image": "https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/2.jpg"
   },
   {
     "id": 3,
@@ -60,7 +60,7 @@ const DOLCE_MENU = [
       "Пармезан",
       "Артишоки"
     ],
-    "image": "https://images.unsplash.com/photo-1541014741259-de529411b96a?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/3.jpg"
   },
   {
     "id": 4,
@@ -76,7 +76,7 @@ const DOLCE_MENU = [
       "Багет",
       "Розмарин"
     ],
-    "image": "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/4.jpg"
   },
   {
     "id": 5,
@@ -91,7 +91,7 @@ const DOLCE_MENU = [
       "Лук",
       "Гренки"
     ],
-    "image": "https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/5.jpg"
   },
   {
     "id": 6,
@@ -106,7 +106,7 @@ const DOLCE_MENU = [
       "Семечки",
       "Тимьян"
     ],
-    "image": "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2a?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/6.jpg"
   },
   {
     "id": 7,
@@ -121,7 +121,7 @@ const DOLCE_MENU = [
       "Лемонграсс",
       "Грибы"
     ],
-    "image": "https://images.unsplash.com/photo-1569562211093-4ed0d0758f12?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/7.jpg"
   },
   {
     "id": 8,
@@ -136,7 +136,7 @@ const DOLCE_MENU = [
       "Сливки",
       "Укроп"
     ],
-    "image": "https://images.unsplash.com/photo-1547928576-a4a33237cbc3?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/8.jpg"
   },
   {
     "id": 9,
@@ -151,7 +151,7 @@ const DOLCE_MENU = [
       "Грюйер",
       "Багет"
     ],
-    "image": "https://images.unsplash.com/photo-1583394293214-28ded15ee548?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/9.jpg"
   },
   {
     "id": 10,
@@ -167,7 +167,7 @@ const DOLCE_MENU = [
       "Пармезан",
       "Томаты"
     ],
-    "image": "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/10.jpg"
   },
   {
     "id": 11,
@@ -182,7 +182,7 @@ const DOLCE_MENU = [
       "Пармезан",
       "Трюфельное масло"
     ],
-    "image": "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/11.jpg"
   },
   {
     "id": 12,
@@ -197,7 +197,7 @@ const DOLCE_MENU = [
       "Брокколи",
       "Лимон"
     ],
-    "image": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/12.jpg"
   },
   {
     "id": 13,
@@ -212,7 +212,7 @@ const DOLCE_MENU = [
       "Масло",
       "Сливки"
     ],
-    "image": "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/13.jpg"
   },
   {
     "id": 14,
@@ -227,7 +227,7 @@ const DOLCE_MENU = [
       "Цукини",
       "Розмарин"
     ],
-    "image": "https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/14.jpg"
   },
   {
     "id": 15,
@@ -242,7 +242,7 @@ const DOLCE_MENU = [
       "Содовая",
       "Мята"
     ],
-    "image": "https://images.unsplash.com/photo-1513558161293-cdaf765edfd7?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/18.jpg"
   },
   {
     "id": 16,
@@ -257,7 +257,7 @@ const DOLCE_MENU = [
       "Вода",
       "Сахар"
     ],
-    "image": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/16.jpg"
   },
   {
     "id": 17,
@@ -270,7 +270,7 @@ const DOLCE_MENU = [
       "Матча",
       "Молоко"
     ],
-    "image": "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/17.jpg"
   },
   {
     "id": 18,
@@ -284,7 +284,7 @@ const DOLCE_MENU = [
       "Лимон",
       "Содовая"
     ],
-    "image": "https://images.unsplash.com/photo-1510626176961-4b57d4fbad03?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/18.jpg"
   },
   {
     "id": 19,
@@ -298,7 +298,7 @@ const DOLCE_MENU = [
       "Персик",
       "Лёд"
     ],
-    "image": "https://images.unsplash.com/photo-1499638673689-79a0b5115d87?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/19.jpg"
   },
   {
     "id": 20,
@@ -313,7 +313,7 @@ const DOLCE_MENU = [
       "Сливки",
       "Ягоды"
     ],
-    "image": "https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/20.jpg"
   },
   {
     "id": 21,
@@ -328,7 +328,7 @@ const DOLCE_MENU = [
       "Яйцо",
       "Мука"
     ],
-    "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/21.jpg"
   },
   {
     "id": 22,
@@ -343,7 +343,7 @@ const DOLCE_MENU = [
       "Кофе",
       "Какао"
     ],
-    "image": "https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/22.jpg"
   },
   {
     "id": 23,
@@ -358,7 +358,7 @@ const DOLCE_MENU = [
       "Желатин",
       "Малина"
     ],
-    "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/23.jpg"
   },
   {
     "id": 24,
@@ -373,7 +373,7 @@ const DOLCE_MENU = [
       "Сахар",
       "Ганаш"
     ],
-    "image": "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/24.jpg"
   },
   {
     "id": 25,
@@ -388,7 +388,7 @@ const DOLCE_MENU = [
       "Содовая",
       "Апельсин"
     ],
-    "image": "https://images.unsplash.com/photo-1544145945-f90425340c7e?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/25.jpg"
   },
   {
     "id": 26,
@@ -402,7 +402,7 @@ const DOLCE_MENU = [
       "Кампари",
       "Красный вермут"
     ],
-    "image": "https://images.unsplash.com/photo-1470337458703-46ad1756a187?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/26.jpg"
   },
   {
     "id": 27,
@@ -414,7 +414,7 @@ const DOLCE_MENU = [
     "ingredients": [
       "Виноград Пино Гриджо"
     ],
-    "image": "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/27.jpg"
   },
   {
     "id": 28,
@@ -426,7 +426,7 @@ const DOLCE_MENU = [
     "ingredients": [
       "Виноград Санджовезе"
     ],
-    "image": "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/28.jpg"
   },
   {
     "id": 29,
@@ -438,6 +438,6 @@ const DOLCE_MENU = [
     "ingredients": [
       "Виноград Глера"
     ],
-    "image": "https://images.unsplash.com/photo-1594980087087-a7c1030c834a?auto=format&fit=crop&w=600&q=80"
+    "image": "assets/menu/27.jpg"
   }
 ];
