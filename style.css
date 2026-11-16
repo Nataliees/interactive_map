@@ -350,3 +350,152 @@ body.screen-app {
 .table-button strong { font-size: 18px; line-height: 20px; }
 .table-button small { font-size: 8px; line-height: 10px; }
 .table-button .map-status { font-size: 7px; line-height: 8px; }
+
+/* Both directions share a legible seal, with a steady destination label. */
+.screen-switch.menu-orbit {
+  width: 104px; height: 104px;
+  min-width: 104px; min-height: 104px; flex-basis: 104px;
+  border-color: var(--olive);
+  color: #3f4b27;
+}
+.menu-orbit .orbit-caption { font-size: 9px; font-weight: 600; animation-duration: 40s; }
+.menu-orbit .orbit-core { width: 66px; height: 66px; gap: 2px; border-color: #87946b; background: #fffbf2; }
+.menu-orbit .orbit-label { font-size: 11px; font-weight: 700; line-height: 13px; letter-spacing: .35px; }
+.menu-orbit .orbit-leaf { width: 23px; height: 23px; }
+.menu-orbit .orbit-arrow { width: 19px; height: 10px; }
+.menu-orbit .orbit-core svg { stroke-width: 1.65; }
+.booking-orbit .orbit-arrow { transform: rotate(180deg); }
+.booking-orbit:hover .orbit-arrow, .booking-orbit:focus-visible .orbit-arrow { transform: translateX(-3px) rotate(180deg); }
+@media (max-width: 700px) {
+  .screen-switch.menu-orbit { width: 92px; height: 92px; min-width: 92px; min-height: 92px; flex-basis: 92px; }
+  .menu-orbit .orbit-core { width: 56px; height: 56px; gap: 1px; }
+  .menu-orbit .orbit-label { font-size: 10px; line-height: 12px; letter-spacing: .1px; }
+  .menu-orbit .orbit-leaf { width: 20px; height: 20px; }
+  .menu-orbit .orbit-arrow { width: 17px; height: 9px; }
+}
+::selection { background: #4f5b32; color: #fffaf0; }
+
+/* The native select remains available to forms and scripts; only the custom control is exposed. */
+.dolce-native-select,
+.dolce-select-caption {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+.dolce-select {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  margin-top: 6px;
+}
+.dolce-select-trigger {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 12px 16px;
+  border: 1px solid #bfc4af;
+  border-radius: 999px;
+  background: #fffcf7;
+  color: #292d23;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.dolce-select-value {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dolce-select-arrow {
+  flex: 0 0 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: #4f5b32;
+}
+.dolce-select-trigger:hover:not(:disabled),
+.dolce-select.is-open .dolce-select-trigger {
+  border-color: #4f5b32;
+  background: #f5f6ec;
+}
+.dolce-select-trigger:focus-visible {
+  outline: 3px solid #748343;
+  outline-offset: 4px;
+}
+.dolce-select-trigger:disabled {
+  opacity: .5;
+  cursor: default;
+}
+.dolce-select-list {
+  box-sizing: border-box;
+  position: fixed;
+  z-index: 5000;
+  display: block;
+  max-height: 280px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #8c9776 #f6f2e9;
+  padding: 6px;
+  border: 1px solid #aeb79a;
+  border-radius: 18px;
+  background: #fffcf7;
+  color: #292d23;
+  box-shadow: 0 8px 24px #353e2526;
+  font: 14px/1.5 Arial, sans-serif;
+  text-align: left;
+}
+.dolce-select-list[hidden] { display: none !important; }
+.dolce-select-option {
+  box-sizing: border-box;
+  display: block;
+  min-height: 40px;
+  margin: 2px 0;
+  padding: 10px 13px;
+  border-radius: 12px;
+  color: #292d23;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  user-select: none;
+}
+.dolce-select-option:not([aria-disabled="true"]):hover,
+.dolce-select-option:not([aria-disabled="true"]).is-active,
+.dolce-select-option[aria-selected="true"]:not([aria-disabled="true"]) {
+  background: #4f5b32;
+  color: #fffdf4;
+}
+.dolce-select-option[aria-disabled="true"] {
+  opacity: .45;
+  cursor: default;
+}
+.dolce-select-option:focus-visible {
+  outline: 2px solid #4f5b32;
+  outline-offset: -2px;
+}
+#menu .menu-toolbar .dolce-select-trigger {
+  min-height: 40px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  background-color: #fffaf1cc;
+}

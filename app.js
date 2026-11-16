@@ -16,6 +16,7 @@
   const numberForms = new Intl.PluralRules('ru-RU');
   const counted = (value, forms) => `${value} ${forms[{one:0,few:1,many:2,other:2}[numberForms.select(value)]]}`;
   const money = value => new Intl.NumberFormat('ru-RU').format(value) + ' ₽';
+  let selectControls = null;
   const screens = {booking:document.querySelector('.booking-panel'),menu:$('menu')};
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const viewRoutes = new Set(['#booking','#my-bookings','#menu','#menu-cart']);
@@ -27,6 +28,7 @@
   }
   async function navigateView(route, {push=true, animate=true, focus=true, focusElement=null, preserveScroll=false} = {}) {
     if(!viewRoutes.has(route)) return false;
+    selectControls?.closeAll();
     const next = route === '#menu' || route === '#menu-cart' ? 'menu' : 'booking';
     const destination = screens[next], previous = currentView && screens[currentView];
     if(push && location.hash !== route) history.pushState(null,'',route);
@@ -63,11 +65,12 @@
     // Reveal a routed subsection before moving focus; other view positions stay intact.
     if(route==='#menu-cart')$('menu-cart').open=true;
     if(!preserveScroll)scrollPanelTo(destination,document.querySelector(route));
-    else if(focusElement)scrollPanelTo(destination,focusElement);
+    else if(focusElement)scrollPanelTo(destination,selectControls?.focusTarget(focusElement)||focusElement);
     await transitionDone;
     if(number!==transitionNumber)return false;
     if(focus){
-      const target=focusElement || (route==='#my-bookings'?$('my-title'):route==='#menu-cart'?$('menu-cart').querySelector('summary'):next==='menu'?$('menu-title'):$('booking-title'));
+      const requestedFocus=focusElement || (route==='#my-bookings'?$('my-title'):route==='#menu-cart'?$('menu-cart').querySelector('summary'):next==='menu'?$('menu-title'):$('booking-title'));
+      const target=selectControls?.focusTarget(requestedFocus)||requestedFocus;
       if(!target.matches('a,button,input,select,summary,[tabindex]'))target.tabIndex=-1;
       target.focus({preventScroll:true});
     }
@@ -84,7 +87,23 @@
   window.addEventListener('popstate',restoreView);
   window.addEventListener('hashchange',restoreView);
 
-  const initial = () => ({version:1, bookings:[]});
+  function randomOccupied(bookings = [], previous = []) {
+    const available=tables.map(t=>t.id).filter(id=>!bookings.some(b=>b.tableId===id));
+    const count=Math.min(2,available.length);
+    const fresh=available.filter(id=>!previous.includes(id));
+    const pool=fresh.length>=count?fresh:available;
+    // Partial Fisher–Yates: choose distinct tables without touching personal bookings.
+    for(let i=0;i<count;i++){
+      const index=i+Math.floor(Math.random()*(pool.length-i));
+      [pool[i],pool[index]]=[pool[index],pool[i]];
+    }
+    const picked=pool.slice(0,count).sort((a,b)=>a-b);
+    if(available.length>count && picked.length===previous.length && picked.every(id=>previous.includes(id))) {
+      picked[picked.length-1]=available.find(id=>!picked.includes(id));
+    }
+    return picked.sort((a,b)=>a-b);
+  }
+  const initial = (previous = []) => ({version:1, bookings:[], occupiedTables:randomOccupied([],previous)});
   let state = initial(), selected = null, storageOK = true;
   function storageError(text) { storageOK = false; $('storage-error').hidden = false; $('storage-error').textContent = text; }
   function validate(value) {
@@ -92,9 +111,11 @@
     const ids = new Set();
     for (const b of value.bookings) {
       const t = tables.find(t => t.id === b.tableId);
-      if (!t || [2,6].includes(t.id) || ids.has(t.id) || !Number.isInteger(b.guests) || b.guests < 1 || b.guests > t.capacity || !Number.isInteger(b.hours) || b.hours < 1 || b.hours > 6) throw Error('booking');
+      if (!t || ids.has(t.id) || !Number.isInteger(b.guests) || b.guests < 1 || b.guests > t.capacity || !Number.isInteger(b.hours) || b.hours < 1 || b.hours > 6) throw Error('booking');
       ids.add(t.id);
     }
+    const occupiedTables=value.occupiedTables===undefined?[]:value.occupiedTables;
+    if(!Array.isArray(occupiedTables) || occupiedTables.length>2 || new Set(occupiedTables).size!==occupiedTables.length || occupiedTables.some(id=>!Number.isInteger(id) || !tables.some(t=>t.id===id) || ids.has(id))) throw Error('occupied');
     const cleanItems = items => {
       if(!Array.isArray(items)) throw Error('items');
       const seen=new Set();
@@ -103,7 +124,7 @@
         seen.add(item.dishId); return {dishId:item.dishId,quantity:item.quantity};
       });
     };
-    return {version:1,bookings:value.bookings.map(({tableId,guests,hours,cart=[],orders=[]})=> {
+    return {version:1,occupiedTables:[...occupiedTables],bookings:value.bookings.map(({tableId,guests,hours,cart=[],orders=[]})=> {
       if(!Array.isArray(orders)) throw Error('orders');
       const seen=new Set();
       const cleanOrders=orders.map(o=> {
@@ -118,13 +139,14 @@
     catch { storageError('Не удалось прочитать сохранённые брони. Работа продолжается в памяти вкладки; после перезагрузки изменения могут пропасть. Сброс броней позволяет восстановить сохранение.'); return null; }
   }
   state = read() || initial();
+  if(storageOK)persist({...state,occupiedTables:randomOccupied(state.bookings,state.occupiedTables)});
   function persist(next) {
     state = next;
     try { localStorage.setItem(KEY, JSON.stringify(state)); storageOK = true; $('storage-error').hidden = true; }
     catch { storageError('Бронь изменена только в памяти вкладки: браузер не разрешил сохранение. После перезагрузки изменения могут пропасть.'); }
   }
   function sync() { if (storageOK) { const latest = read(); if (latest) state = latest; } }
-  const occupied = id => [2,6].includes(id) || state.bookings.some(b=>b.tableId===id);
+  const occupied = id => state.occupiedTables.includes(id) || state.bookings.some(b=>b.tableId===id);
   const matches = t => t.capacity >= Number($('capacity').value) && (!Number($('rate').value) || t.rate === Number($('rate').value));
   function say(text) { $('message').textContent = text; }
   function tableButton(t, list) {
@@ -181,7 +203,7 @@
   });
   $('reset').addEventListener('click',()=>$('reset-dialog').showModal());
   $('keep').addEventListener('click',()=>$('reset-dialog').close());
-  $('reset-confirm').addEventListener('click',()=>{persist(initial());selected=null;$('capacity').value='0';$('rate').value='0';$('hours').value='2';render();$('reset-dialog').close();say('Брони сброшены. Столики №2 и №6 заняты, остальные свободны.');});
+  $('reset-confirm').addEventListener('click',()=>{persist(initial(state.occupiedTables));selected=null;$('capacity').value='0';$('rate').value='0';$('hours').value='2';render();$('reset-dialog').close();say(`Брони сброшены. Заняты столики ${state.occupiedTables.map(id=>'№'+id).join(' и ')}, остальные свободны.`);});
   window.addEventListener('storage',event=>{if(event.key===KEY||event.key===null){const latest=read();if(latest){state=latest;render();say('Брони обновлены из другой вкладки.');}}});
   function itemsTotal(items){return items.reduce((sum,item)=>sum+DOLCE_MENU.find(d=>d.id===item.dishId).price*item.quantity,0);}
   function currentBooking(){return state.bookings.find(b=>b.tableId===orderTable);}
@@ -258,6 +280,7 @@
     if(!b?.cart?.length){const p=document.createElement('p');p.className='cart-empty';p.textContent='Немного пасты, бокал лимонада? Добавьте что-нибудь из меню.';$('cart-items').append(p);}
     $('cart-summary').textContent=money(itemsTotal(b?.cart||[]));$('cart-quantity').textContent=(b?.cart||[]).reduce((sum,item)=>sum+item.quantity,0);
     $('cart-total').textContent=money(itemsTotal(b?.cart||[]));$('place-order').disabled=!b?.cart?.length;
+    selectControls?.refresh();
   }
   $('dish-search').addEventListener('input',()=>{if(activeDish===null)activeDish=-1;renderMenu();});
   $('order-table').addEventListener('change',()=>{orderTable=Number($('order-table').value)||null;renderMenu();$('order-message').textContent='';});
@@ -273,6 +296,342 @@
     };
     try{if(navigator.locks)await navigator.locks.request(KEY,submit);else submit();}catch{render();$('order-message').textContent='Не удалось сохранить заказ. Попробуйте ещё раз.';}
   });
+  /** Enhance the five native selects without changing their IDs, values or events. */
+  /** Enhance the five native selects without changing their IDs, values or events. */
+  function setupSelectControls() {
+    if (setupSelectControls.instance) return setupSelectControls.instance;
+
+    const controls = [];
+    const bySelect = new Map();
+    let opened = null;
+
+    function focusTrigger(control) {
+      if (!control.trigger.disabled) control.trigger.focus({preventScroll: true});
+    }
+
+    function close(control, restoreFocus = false) {
+      if (!control) return;
+      control.open = false;
+      control.list.hidden = true;
+      control.root.classList.remove('is-open');
+      control.trigger.setAttribute('aria-expanded', 'false');
+      control.trigger.removeAttribute('aria-activedescendant');
+      control.buffer = '';
+      control.scrollSnapshot = null;
+      clearTimeout(control.bufferTimer);
+      if (opened === control) opened = null;
+      if (restoreFocus) focusTrigger(control);
+    }
+
+    function closeAll() {
+      for (const control of controls) close(control);
+    }
+
+    function enabledIndices(control) {
+      return control.options.flatMap((option, index) => option.disabled ? [] : [index]);
+    }
+
+    function scrollActiveOption(control) {
+      if (!control.open) return;
+      const row = control.rows[control.activeIndex];
+      if (!row) return;
+      const rowBox = row.getBoundingClientRect();
+      const listBox = control.list.getBoundingClientRect();
+      if (rowBox.top < listBox.top + 5) control.list.scrollTop -= listBox.top + 5 - rowBox.top;
+      else if (rowBox.bottom > listBox.bottom - 5) control.list.scrollTop += rowBox.bottom - listBox.bottom + 5;
+    }
+
+    function highlight(control, index, scroll = true) {
+      if (index < 0 || control.options[index]?.disabled) return;
+      control.activeIndex = index;
+      control.rows.forEach((row, rowIndex) => row.classList.toggle('is-active', rowIndex === index));
+      if (control.open) control.trigger.setAttribute('aria-activedescendant', control.rows[index].id);
+      if (scroll) scrollActiveOption(control);
+    }
+
+    function positionPopup(control) {
+      const box = control.trigger.getBoundingClientRect();
+      const margin = 8;
+      const gap = 6;
+      const width = Math.min(box.width, Math.max(1, innerWidth - margin * 2));
+      const below = Math.max(0, innerHeight - box.bottom - gap - margin);
+      const above = Math.max(0, box.top - gap - margin);
+      const naturalHeight = Math.min(control.list.scrollHeight + 2, 280);
+      const useAbove = below < Math.min(naturalHeight, 180) && above > below;
+      const room = useAbove ? above : below;
+      control.list.style.width = width + 'px';
+      control.list.style.maxHeight = Math.max(1, Math.min(280, room)) + 'px';
+      const popupHeight = Math.min(control.list.getBoundingClientRect().height, room);
+      control.list.style.left = Math.max(margin, Math.min(box.left, innerWidth - width - margin)) + 'px';
+      control.list.style.top = (useAbove ? Math.max(margin, box.top - gap - popupHeight) : box.bottom + gap) + 'px';
+      control.list.dataset.side = useAbove ? 'above' : 'below';
+    }
+
+    function scrollNode(target) {
+      return target === window || target === document
+        ? (document.scrollingElement || document.documentElement)
+        : target;
+    }
+
+    function snapshotAncestorScrolls(control) {
+      control.scrollSnapshot = new Map();
+      for (let node = control.trigger.parentElement; node; node = node.parentElement) {
+        control.scrollSnapshot.set(node, {top: node.scrollTop, left: node.scrollLeft});
+      }
+      const documentScroller = scrollNode(document);
+      control.scrollSnapshot.set(documentScroller, {top: documentScroller.scrollTop, left: documentScroller.scrollLeft});
+    }
+
+    function open(control) {
+      refreshControl(control);
+      if (control.trigger.disabled) return;
+      if (opened && opened !== control) close(opened);
+      control.open = true;
+      opened = control;
+      control.root.classList.add('is-open');
+      control.trigger.setAttribute('aria-expanded', 'true');
+      control.list.hidden = false;
+      control.list.style.font = getComputedStyle(control.trigger).font;
+      const selected = control.select.selectedIndex;
+      control.activeIndex = control.options[selected] && !control.options[selected].disabled ? selected : enabledIndices(control)[0];
+      positionPopup(control);
+      focusTrigger(control);
+      snapshotAncestorScrolls(control);
+      highlight(control, control.activeIndex);
+    }
+
+    function commit(control, index) {
+      const option = control.options[index];
+      if (!option || option.disabled || control.select.disabled) return;
+      const changed = control.select.selectedIndex !== index;
+      control.select.selectedIndex = index;
+      close(control);
+      refresh();
+      // The application remains the single owner of booking/filter/order behavior.
+      if (changed) control.select.dispatchEvent(new Event('change', {bubbles: true}));
+      refresh();
+      focusTrigger(control);
+    }
+
+    function normalized(text) {
+      return text.toLocaleLowerCase('ru-RU').normalize('NFC');
+    }
+
+    function typeahead(control, key) {
+      clearTimeout(control.bufferTimer);
+      const character = normalized(key);
+      control.buffer += character;
+      control.bufferTimer = setTimeout(() => { control.buffer = ''; }, 700);
+      const repeated = [...control.buffer].every(value => value === character);
+      const query = repeated ? character : control.buffer;
+      const start = control.open ? control.activeIndex : control.select.selectedIndex;
+      // A new single letter cycles past the current option; longer prefixes include it.
+      const offset = query.length === 1 ? 1 : 0;
+      for (let distance = offset; distance < control.options.length + offset; distance++) {
+        const index = ((Math.max(-1, start) + distance) % control.options.length + control.options.length) % control.options.length;
+        const option = control.options[index];
+        if (!option.disabled && normalized(option.label).startsWith(query)) {
+          if (control.open) highlight(control, index);
+          else {
+            // Native selects also update their value when typed into while closed.
+            const buffer = control.buffer;
+            commit(control, index);
+            control.buffer = buffer;
+            clearTimeout(control.bufferTimer);
+            control.bufferTimer = setTimeout(() => { control.buffer = ''; }, 700);
+          }
+          return;
+        }
+      }
+    }
+
+    function onKeydown(control, event) {
+      if (control.trigger.disabled || event.altKey || event.ctrlKey || event.metaKey || event.isComposing) return;
+      const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter', ' ', 'Escape'];
+      if (event.key === 'Tab') { close(control); return; }
+      if (keys.includes(event.key)) event.preventDefault();
+      if (event.key === 'Escape') { if (control.open) close(control, true); return; }
+      if (event.key === 'Enter' || event.key === ' ') {
+        if (control.open) commit(control, control.activeIndex);
+        else open(control);
+        return;
+      }
+      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+        if (!control.open) { open(control); return; }
+        const available = enabledIndices(control);
+        const current = available.indexOf(control.activeIndex);
+        const step = event.key === 'ArrowDown' ? 1 : -1;
+        highlight(control, available[Math.max(0, Math.min(available.length - 1, current + step))]);
+        return;
+      }
+      if (event.key === 'Home' || event.key === 'End') {
+        if (!control.open) open(control);
+        const available = enabledIndices(control);
+        highlight(control, event.key === 'Home' ? available[0] : available[available.length - 1]);
+        return;
+      }
+      if (event.key.length === 1 && !event.altKey && !event.ctrlKey && !event.metaKey) {
+        event.preventDefault();
+        typeahead(control, event.key);
+      }
+    }
+
+    function captionFor(control) {
+      if (control.label) {
+        return [...control.label.childNodes]
+          .filter(node => node !== control.select && node !== control.root)
+          .map(node => node.textContent).join(' ').replace(/\s+/g, ' ').trim();
+      }
+      return control.select.getAttribute('aria-label') || control.select.id;
+    }
+
+    function refreshControl(control) {
+      const focusWasInList = control.list.contains(document.activeElement);
+      const focusedValue = focusWasInList ? document.activeElement.dataset.value : null;
+      const oldActive = control.options[control.activeIndex];
+      const nextOptions = [...control.select.options].map(option => ({
+        value: option.value,
+        label: option.label,
+        disabled: option.disabled || (option.parentElement?.tagName === 'OPTGROUP' && option.parentElement.disabled)
+      }));
+      const signature = JSON.stringify(nextOptions);
+      const changed = signature !== control.signature;
+      control.options = nextOptions;
+      control.caption.textContent = captionFor(control);
+      control.value.textContent = control.select.selectedOptions[0]?.label || (nextOptions.length ? 'Выберите вариант' : 'Нет вариантов');
+      control.trigger.disabled = control.select.disabled || !enabledIndices(control).length;
+      control.trigger.setAttribute('aria-disabled', String(control.trigger.disabled));
+      control.trigger.setAttribute('aria-required', String(control.select.required));
+      control.trigger.setAttribute('aria-invalid', String(!control.select.validity.valid));
+      control.root.classList.toggle('is-disabled', control.trigger.disabled);
+
+      if (changed) {
+        control.signature = signature;
+        control.rows = nextOptions.map((option, index) => {
+          const row = document.createElement('span');
+          row.id = `${control.list.id}-option-${index}`;
+          row.className = 'dolce-select-option';
+          row.setAttribute('role', 'option');
+          row.setAttribute('aria-disabled', String(option.disabled));
+          row.tabIndex = -1;
+          row.dataset.value = option.value;
+          row.textContent = option.label;
+          row.addEventListener('pointermove', () => { if (!option.disabled) highlight(control, index, false); });
+          row.addEventListener('pointerdown', event => event.preventDefault());
+          row.addEventListener('click', event => {
+            event.preventDefault();
+            if (!option.disabled) commit(control, index);
+          });
+          return row;
+        });
+        control.list.replaceChildren(...control.rows);
+        const previous = oldActive ? nextOptions.findIndex(option => option.value === oldActive.value && !option.disabled) : -1;
+        control.activeIndex = previous >= 0 ? previous : control.select.selectedIndex;
+      }
+
+      control.rows.forEach((row, index) => row.setAttribute('aria-selected', String(index === control.select.selectedIndex)));
+      if (control.trigger.disabled) close(control);
+      else if (control.open) {
+        if (control.activeIndex < 0 || !control.options[control.activeIndex] || control.options[control.activeIndex].disabled) {
+          control.activeIndex = enabledIndices(control)[0];
+        }
+        positionPopup(control);
+        highlight(control, control.activeIndex);
+      }
+      if (focusWasInList && changed && !control.trigger.disabled) {
+        const replacement = control.rows.find(row => row.dataset.value === focusedValue);
+        (replacement || control.trigger).focus({preventScroll: true});
+      }
+    }
+
+    function refresh() {
+      for (const control of controls) refreshControl(control);
+    }
+
+    for (const select of document.querySelectorAll('#capacity, #rate, #guests, #hours, #order-table')) {
+      const id = `dolce-select-${select.id}`;
+      const root = document.createElement('span');
+      root.className = 'dolce-select';
+      const caption = document.createElement('span');
+      caption.id = id + '-caption';
+      caption.className = 'dolce-select-caption';
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.id = id + '-trigger';
+      trigger.className = 'dolce-select-trigger';
+      trigger.setAttribute('role', 'combobox');
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.setAttribute('aria-controls', id + '-list');
+      const value = document.createElement('span');
+      value.id = id + '-value';
+      value.className = 'dolce-select-value';
+      trigger.setAttribute('aria-labelledby', `${caption.id} ${value.id}`);
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      arrow.setAttribute('viewBox', '0 0 16 16');
+      arrow.setAttribute('width', '16');
+      arrow.setAttribute('height', '16');
+      arrow.setAttribute('aria-hidden', 'true');
+      arrow.classList.add('dolce-select-arrow');
+      arrow.innerHTML = '<path d="M4 6 L8 10 L12 6"/>';
+      trigger.append(value, arrow);
+      const list = document.createElement('span');
+      list.id = id + '-list';
+      list.className = 'dolce-select-list';
+      list.hidden = true;
+      list.setAttribute('role', 'listbox');
+      list.setAttribute('aria-labelledby', caption.id);
+      root.append(caption, trigger);
+      select.after(root);
+      document.body.append(list);
+      const label = select.labels?.[0] || select.closest('label');
+      if (label) label.htmlFor = trigger.id;
+      select.classList.add('dolce-native-select');
+      select.tabIndex = -1;
+      select.setAttribute('aria-hidden', 'true');
+      const control = {select, root, trigger, caption, value, list, label, options: [], rows: [], signature: null, activeIndex: -1, open: false, buffer: '', bufferTimer: null, scrollSnapshot: null};
+      controls.push(control);
+      bySelect.set(select, control);
+      trigger.addEventListener('click', event => {
+        event.preventDefault();
+        if (control.open) close(control);
+        else open(control);
+      });
+      trigger.addEventListener('keydown', event => onKeydown(control, event));
+      list.addEventListener('keydown', event => onKeydown(control, event));
+      select.addEventListener('change', refresh);
+      select.addEventListener('invalid', event => { event.preventDefault(); refreshControl(control); focusTrigger(control); });
+      select.form?.addEventListener('reset', () => queueMicrotask(refresh));
+    }
+
+    document.addEventListener('pointerdown', event => {
+      if (opened && !opened.root.contains(event.target) && !opened.list.contains(event.target)) close(opened);
+    });
+    document.addEventListener('focusin', event => {
+      if (opened && !opened.root.contains(event.target) && !opened.list.contains(event.target)) close(opened);
+    });
+    document.addEventListener('scroll', event => {
+      if (!opened || event.target === opened.list) return;
+      const target = scrollNode(event.target);
+      const baseline = opened.scrollSnapshot?.get(target);
+      // A scroll can be applied before the click but its event delivered afterwards.
+      // Only movement that happened after opening should close the anchored popup.
+      if (baseline && (Math.abs(target.scrollTop - baseline.top) > .5 || Math.abs(target.scrollLeft - baseline.left) > .5)) {
+        close(opened);
+      }
+    }, true);
+    window.addEventListener('resize', closeAll);
+
+    const api = {
+      refresh,
+      closeAll,
+      focusTarget(element) { return bySelect.get(element)?.trigger || element; }
+    };
+    setupSelectControls.instance = api;
+    refresh();
+    return api;
+  }
+  selectControls=setupSelectControls();
   render();
   document.body.classList.add('screen-app');
   navigateView(viewRoutes.has(location.hash)?location.hash:'#booking',{push:false,animate:false,focus:false,preserveScroll:location.hash!=='#my-bookings' && location.hash!=='#menu-cart'});
